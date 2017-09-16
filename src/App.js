@@ -146,6 +146,12 @@ const stateStep = ({ dwarves, grid }) => {
         moving: { ...nextStanding },
         mining: { ...nextMining}
       }
+    } else if (isAdjacent(dwarf, nextMining)) {
+      return {
+        ...dwarf,
+        mining: nextMining,
+        moving: null
+      };
     }
     return {
       ...nextStanding,
