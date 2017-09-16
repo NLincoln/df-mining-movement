@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
 
-const GRID_SIZE = 5;
+const GRID_SIZE = 10;
 
 class Square extends Component {
   render() {
@@ -46,7 +46,7 @@ const initDwarves = () => {
     x: 0,
     y: 0,
     mining: {
-      x: 0, 
+      x: 0,
       y: 1
     }
   }]
@@ -57,7 +57,7 @@ const hasDwarf = (dwarves) => ({ x, y }) =>
   );
 const isMining = (dwarves) => ({ x, y }) =>  
   dwarves.some((dwarf) => 
-    dwarf.mining.x === x && dwarf.mining.y === y
+    dwarf.mining && dwarf.mining.x === x && dwarf.mining.y === y
   );
 
 
@@ -130,10 +130,7 @@ const stateStep = ({ dwarves, grid }) => {
       const next = stepTowards(dwarf, dwarf.moving);
       return {
         ...next,
-        moving: { ...(dwarf.moving)},
-        mining: {
-          ...nextMining
-        }
+        moving: { ...(dwarf.moving)}
       };
     }
     const getNextStanding = findSquare(oobCheck((point) => {
@@ -143,8 +140,7 @@ const stateStep = ({ dwarves, grid }) => {
     if (!isAdjacent(dwarf, nextStanding)) {
       return {
         ...(stepTowards(dwarf, nextStanding)),
-        moving: { ...nextStanding },
-        mining: { ...nextMining}
+        moving: { ...nextStanding }
       }
     } else if (isAdjacent(dwarf, nextMining)) {
       return {
@@ -166,6 +162,20 @@ const stateStep = ({ dwarves, grid }) => {
   }
 };
 
+const toggleMined = ({ grid }) => ({ x, y }) => {
+  return {
+    grid: grid.map((row) => row.map((elem) => {
+      if (elem.x === x && elem.y === y) {
+        return {
+          ...elem,
+          isMined: !elem.isMined
+        };
+      }
+      return elem;
+    }))
+  }
+};
+
 class App extends Component {
   state = {
     grid: null,
@@ -183,11 +193,13 @@ class App extends Component {
   render() {
     const has = hasDwarf(this.state.dwarves);
     const mining = isMining(this.state.dwarves);
+    const toggle = toggleMined(this.state);
     const grid = this.state.grid
     .map((row) => row.map((elem) => {
       return {
         ...elem,
-        fill: has(elem) ? "black" : mining(elem) ? "green" : elem.isMined ? "blue" : "red"
+        fill: has(elem) ? "black" : mining(elem) ? "green" : elem.isMined ? "blue" : "red",
+        onClick: () => this.setState(toggle(elem))
       }
     }));
     const Grid = renderGrid(grid);
